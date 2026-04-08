@@ -24,4 +24,4 @@
     * *Điểm gãy:* Có nút "Gặp tư vấn viên" trực tiếp. Trải nghiệm đứt gãy vì user phải đợi tư vấn viên liên lạc lại.
 
 ### 3. SKETCH TO-BE (10')
-![](sketch_to_be.jpg)
+![](sketch.jpg)
