@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moni AI - MoMo Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --momo-primary: #CF2172; /* Momo Pink */
+            --momo-dark: #A51458;
+            --momo-light: #FDF1F5;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-400: #9CA3AF;
+            --gray-800: #1F2937;
+            --text-main: #374151;
+            --text-muted: #6B7280;
+            --white: #FFFFFF;
+            --success: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--gray-200);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Phone Mockup */
+        .device {
+            width: 100%;
+            max-width: 400px;
+            height: 800px;
+            background: var(--gray-50);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border: 8px solid var(--gray-800);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--momo-primary), var(--momo-dark));
+            padding: 40px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--white);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .header-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .header-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+        }
+
+        .header-info h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header-info p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1.5" fill="%23E5E7EB"/></svg>') repeat;
+        }
+
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .message-wrapper.user {
+            align-items: flex-end;
+        }
+
+        .message-wrapper.ai {
+            align-items: flex-start;
+        }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .user .msg-bubble {
+            background: var(--momo-dark);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai .msg-bubble {
+            background: var(--white);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--gray-100);
+        }
+
+        /* Quick Scenarios (For Demo Purpose) */
+        .scenarios {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            background: var(--white);
+            border-top: 1px solid var(--gray-100);
+            scrollbar-width: none;
+        }
+        .scenarios::-webkit-scrollbar { display: none; }
+
+        .scenario-chip {
+            background: var(--momo-light);
+            color: var(--momo-primary);
+            border: 1px solid rgba(207, 33, 114, 0.2);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-chip:hover {
+            background: var(--momo-primary);
+            color: white;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px 25px;
+            background: var(--white);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+
+        .input-area input {
+            flex: 1;
+            border: 1px solid var(--gray-200);
+            border-radius: 24px;
+            padding: 12px 20px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--gray-50);
+        }
+
+        .input-area input:focus {
+            border-color: var(--momo-primary);
+            background: var(--white);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--momo-primary);
+            color: var(--white);
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 12px rgba(207, 33, 114, 0.3);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            transform: translateX(1px); /* optical adjustment */
+        }
+
+        /* Smart Cards / Fall-forward UI */
+        .smart-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 10px;
+            width: 260px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Chart card (High Confidence) */
+        .chart-visual {
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--gray-200);
+        }
+        .bar {
+            flex: 1;
+            background: var(--momo-light);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            animation: growUp 0.8s ease-out forwards;
+            transform-origin: bottom;
+        }
+        .bar.active { background: var(--momo-primary); }
+        
+        /* Slot filling card (Ambiguous / Fall-forward) */
+        .slot-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .slot-btn {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slot-btn:hover {
+            border-color: var(--momo-primary);
+            background: var(--momo-light);
+            color: var(--momo-dark);
+        }
+
+        /* User action buttons inside card */
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .btn-outline, .btn-fill {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--gray-200);
+        }
+        .btn-outline:hover { background: var(--gray-100); color: var(--text-main); }
+        
+        .btn-fill {
+            background: var(--momo-primary);
+            color: var(--white);
+        }
+        .btn-fill:hover { background: var(--momo-dark); }
+
+        /* Handoff Card */
+        .agent-handoff {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #FFF3CD;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #FFE69C;
+            margin-bottom: 12px;
+        }
+
+        .feedback-state {
+            font-size: 13px;
+            color: var(--success);
+            padding: 10px 0;
+            text-align: center;
+            font-weight: 500;
+            background: #ECFDF5;
+            border-radius: 8px;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 14px 18px;
+            background: var(--white);
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: var(--momo-primary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+            opacity: 0.7;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pullUp {
+            from { height: 0; }
+        }
+        @keyframes growUp {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        #typing-container {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="device">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-avatar">🤖</div>
+            <div class="header-info">
+                <h1>Moni AI</h1>
+                <p>Luôn sẵn sàng hỗ trợ tài chính</p>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-container" id="chat">
+            <div class="message-wrapper ai">
+                <div class="msg-bubble">
+                    Chào bạn! Mình là Moni, trợ lý AI của MoMo. Mình có thể giúp bạn phân tích chi tiêu, ghi nhận giao dịch, hoặc giải đáp thắc mắc tài chính.
+                </div>
+            </div>
+            
+            <!-- Typing Indicator -->
+            <div class="message-wrapper ai" id="typing-container">
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action / Scenarios (for simulating user inputs quickly) -->
+        <div class="scenarios">
+            <div class="scenario-chip" onclick="simulateUser('Xem biểu đồ ăn uống tuần qua', 'high')">🌟 Tự tin (DB Query)</div>
+            <div class="scenario-chip" onclick="simulateUser('Ghi nhận mâm sinh nhật 500k', 'ambiguous')">⚡ Mơ hồ (Fall-forward)</div>
+            <div class="scenario-chip" onclick="simulateUser('abc xyz blabla', 'low')">❗️ Lỗi NLP / Không hiểu</div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Nhập yêu cầu của bạn..." onkeypress="handleEnter(event)">
+            <button class="send-btn" onclick="handleSend()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat');
+        const typingContainer = document.getElementById('typing-container');
+        const userInput = document.getElementById('user-input');
+
+        let consecutiveErrors = 0; // Track errors for Human Handoff
+
+        // Move typing indicator to end
+        function appendTypingIndicator() {
+            chatContainer.appendChild(typingContainer);
+        }
+
+        // Scroll to bottom gracefully
+        function scrollToBottom() {
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Handle Enter Key
+        function handleEnter(e) {
+            if (e.key === 'Enter') handleSend();
+        }
+
+        // Handle physical typing and sending
+        function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            userInput.value = '';
+            
+            // Basic Intent Inference if manually typed
+            let forcedScenario = 'low';
+            if (text.toLowerCase().includes('chi tiêu') || text.toLowerCase().includes('xem')) forcedScenario = 'high';
+            else if (text.toLowerCase().includes('ghi') || text.toLowerCase().includes('tiền')) forcedScenario = 'ambiguous';
+            
+            processInteraction(text, forcedScenario);
+        }
+
+        // Simulate click from Quick Actions
+        function simulateUser(text, intentConfidence) {
+            processInteraction(text, intentConfidence);
+        }
+
+        // Core AI Engine Flow Simulation (Replicating Mermaid Logic)
+        function processInteraction(text, confidenceScore) {
+            renderUserMessage(text);
+            
+            typingContainer.style.display = 'flex';
+            appendTypingIndicator();
+            scrollToBottom();
+
+            // Simulate Network / AI Processing Time
+            setTimeout(() => {
+                typingContainer.style.display = 'none';
+                
+                switch(confidenceScore) {
+                    case 'high':
+                        handleHighConfidence();
+                        break;
+                    case 'ambiguous':
+                        handleAmbiguousConfidence();
+                        break;
+                    case 'low':
+                        handleLowConfidence();
+                        break;
+                }
+                scrollToBottom();
+            }, 1200);
+        }
+
+        // Path: Độ tự tin cao -> Truy vấn DB -> Card UI (Có nút sửa lỗi/Feedback)
+        function handleHighConfidence() {
+            consecutiveErrors = 0;
+            const text = "Dưới đây là thống kê chi tiêu ăn uống của bạn tuần qua. Tổng cộng: <b>1,500,000đ</b>.";
+            const cardHtml = `
+                <div class="smart-card">
+                    <div class="card-title">📊 Biểu đồ chi tiêu</div>
+                    <div class="chart-visual">
+                        <div class="bar" style="height: 40%"></div>
+                        <div class="bar active" style="height: 90%"></div>
+                        <div class="bar" style="height: 60%"></div>
+                        <div class="bar" style="height: 30%"></div>
+                    </div>
+                    <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Ngày chi nhiều nhất là Thứ 4 (800k).</div>
+                    <div class="card-actions">
+                        <button class="btn-outline" onclick="handleCorrectAction(this)">Sửa đổi/Hoàn tác</button>
+                        <button class="btn-fill" onclick="handleImplicitFeedback(this)">Hợp lý</button>
+                    </div>
+                </div>
+            `;
+            renderAIMessage(text, cardHtml);
+        }
+
+        // Path: Độ tự tin mơ hồ -> Fall-forward Slot-filling -> Card UI 1-Tap
+        function handleAmbiguousConfidence() {
+            consecutiveErrors = 0;
+            const text = "Moni phát hiện bạn muốn ghi khoản chi <b>500k</b>, nhưng chưa chắc chắn về danh mục. Vui lòng chọn 1-tap bên dưới nhé:";
+            const cardHtml = `
+                <div class="smart-card">
+                    <div class="card-title">🏷️ Chọn danh mục (Slot-filling)</div>
+                    <div class="slot-options">
+                        <button class="slot-btn" onclick="handleSlotSelection(this, '🍣 Ăn uống')">🍣 Ăn uống (Khả năng cao)</button>
+                        <button class="slot-btn" onclick="handleSlotSelection(this, '🎁 Quà tặng')">🎁 Quà tặng</button>
+                        <button class="slot-btn" onclick="handleSlotSelection(this, '🎉 Giải trí')">🎉 Giải trí</button>
+                    </div>
+                </div>
+            `;
+            renderAIMessage(text, cardHtml);
+        }
+
+        // Path: Độ tự tin thấp -> Đếm số lỗi -> Dưới 2: Hỏi lại, Từ 2: Handoff
+        function handleLowConfidence() {
+            consecutiveErrors++;
+            
+            if (consecutiveErrors < 2) {
+                // Vòng lặp hỏi lại
+                renderAIMessage("Xin lỗi, Moni chưa hiểu ý của bạn. Bạn có thể diễn đạt lại hoặc cung cấp thêm thông tin được không?");
+            } else {
+                // Human Handoff
+                const text = "Moni nhận thấy bạn đang gặp khó khăn. Để tiết kiệm thời gian, Moni xin phép kết nối bạn với Tư vấn viên nhé.";
+                const cardHtml = `
+                    <div class="smart-card">
+                        <div class="agent-handoff">
+                            <span style="font-size:24px">🎧</span>
+                            <div>
+                                <div style="font-weight:600; font-size:14px; color:#9F580A;">CSKH MoMo</div>
+                                <div style="font-size:12px; color:#B46C0B;">Thời gian chờ: ~1 phút</div>
+                            </div>
+                        </div>
+                        <button class="btn-fill" style="width:100%" onclick="this.innerHTML='Đang gọi điện...'">Gặp tư vấn viên ngay</button>
+                    </div>
+                `;
+                renderAIMessage(text, cardHtml);
+                consecutiveErrors = 0; // reset after handoff
+            }
+        }
+
+        // Data Flywheel - Sửa lỗi
+        function handleCorrectAction(btn) {
+            const card = btn.closest('.smart-card');
+            card.innerHTML = `<div class="feedback-state">✨ Đã ghi nhận yêu cầu sửa đổi (Flywheel). Moni sẽ chú ý hơn vào lần sau!</div>`;
+            logToFlywheel("User Canceled/Corrected Inference");
+            setTimeout(() => {
+                renderAIMessage("Moni đã hủy ghi nhận giao dịch sai vừa rồi! Bạn muốn mình cập nhật lại vào nhóm nào?");
+            }, 1000);
+        }
+
+        // Data Flywheel - Implicit feedback (Tương tác bình thường/Hài lòng)
+        function handleImplicitFeedback(btn) {
+            const card = btn.closest('.smart-card');
+            card.innerHTML = `<div class="feedback-state">✅ Đã lưu kết quả thành công!</div>`;
+            logToFlywheel("Implicit Feedback: User satisfied with High Conf Result");
+        }
+
+        // Data Flywheel - Slot Selection (User 1-tap)
+        function handleSlotSelection(btn, category) {
+            const card = btn.closest('.smart-card');
+            card.innerHTML = `<div class="feedback-state">✅ Đã xếp vào danh mục: <b>${category}</b></div>`;
+            logToFlywheel(`User explicitly selected slot: ${category}`);
+            setTimeout(() => {
+                renderAIMessage(`Tuyệt vời! Giao dịch 500k đã được lưu gọn gàng vào <b>${category}</b>. Cảm ơn bạn đã đào tạo Moni! 🎀`);
+            }, 800);
+        }
+
+        function logToFlywheel(action) {
+            console.log("🔄 Data Flywheel Update: ", action);
+            // In reality, this sends telemetry to retrain/fine-tune the AI
+        }
+
+        // UI Render Helpers
+        function renderUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message-wrapper user';
+            div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+            chatContainer.insertBefore(div, typingContainer);
+        }
+
+        function renderAIMessage(text, cardHtml = '') {
+            const div = document.createElement('div');
+            div.className = 'message-wrapper ai';
+            div.innerHTML = `
+                <div class="msg-bubble">${text}</div>
+                ${cardHtml}
+            `;
+            chatContainer.insertBefore(div, typingContainer);
+            appendTypingIndicator(); // keep typing indicator at bottom
+            scrollToBottom();
+        }
+
+    </script>
+</body>
+</html>
